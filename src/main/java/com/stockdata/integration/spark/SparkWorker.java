@@ -90,9 +90,6 @@ public class SparkWorker {
 
         JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-        if (sparkContext == null)
-            System.out.println("Spark Cont = null");
-
         LocalDateTime dateTime = LocalDateTime.now().minusHours(amountHour);//устанвка времени, начиная с которого считываются записи
         Instant dateTimeInstant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
 
@@ -112,9 +109,6 @@ public class SparkWorker {
 
         Collection<PriceStatistics> priceStatisticsCollection = priceStatisticsRDD.collect();
 
-        for (PriceStatistics p : priceStatisticsCollection) {
-            System.out.println(p.getInstrumentId() + " ; " + p.getCurrencyId() + ";" + p.getPrice() + ";" + p.getAmountHours() + " ; " + p.getTimestamp().toString());
-        }
         sparkContext.close();
         return priceStatisticsCollection;
     }
