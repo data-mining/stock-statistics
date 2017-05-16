@@ -40,7 +40,7 @@ public class DataProcessing implements Task {
     @Override
     public void execute() throws Exception {
         if (sparkEnable) {
-            Collection<PriceStatistics> result = sparkWorker.averagePriceCalculation(6);
+            Collection<PriceStatistics> result = sparkWorker.averagePriceCalculation(1);
             for (PriceStatistics pr : result) {
                 System.out.println(" InstrumentId :" + pr.getInstrumentId() + " CurrencyId :" + pr.getCurrencyId() + " Price :" + pr.getPrice());
             }
@@ -59,7 +59,3 @@ public class DataProcessing implements Task {
         return comparator.compare(dateTime, cronTime) == 0;
     }
 }
-
-//            Collection<PriceStatistics> result = new ArrayList<>();
-//            result.add(new PriceStatistics(new Long(1), new Long(2), new Long(3), new Date().getTime(), 5));
-//            result.add(new PriceStatistics(new Long(2), new Long(4), new Long(3), new Date().getTime(), 5));

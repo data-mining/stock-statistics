@@ -14,42 +14,16 @@ import java.util.Date;
  * Created by mandarinka on 11.05.17.
  */
 
-/*
-    CREATE TABLE quote (id UUID PRIMARY KEY, firstInstrumentId bigint, firstInstrumentISIN text,
-quoteSettlementType text, quoteOperationType text, firstInstrumentSettlementCurrency text,
-price4One bigint, instrumentQuantity bigint, quoteTimestamp timestamp);
-*/
-
-    /*
-    CREATE TABLE quote (id bigint PRIMARY KEY, firstinstrumentid bigint, firstinstrumentisin text,
-quotesettlementtype text, quoteoperationtype text, firstinstrumentsettlementcurrency text,
-price4one bigint, instrumentquantity bigint, quotetimestamp timestamp);
-*/
-
-/*
-    CREATE TABLE quote (id bigint, first_instrument_id bigint, first_instrument_isin text,
-quotesettlementtype text, quoteoperationtype text, firstinstrumentsettlementcurrency text,
-price4one bigint, instrumentquantity bigint, quotetimestamp timestamp, PRIMARY KEY(id, quotetimestamp));
-*/
-
-/*
-    CREATE TABLE quote (id bigint, first_instrument_id bigint, first_instrument_isin text, first_instrument_settl_currency_id bigint, first_instrument_settl_currency_short_name text,
-quote_settlement_type text, quote_operation_type text,
-price4one bigint, instrument_quantity bigint, quote_timestamp timestamp, PRIMARY KEY(id, quote_timestamp));
-*/
-
 @Table
 public class Quote implements Serializable {
-    @PrimaryKeyColumn(type = PrimaryKeyType.PARTITIONED)
-    private Long id;
 
-    @Column(value = "first_instrument_id")
+    @PrimaryKeyColumn(name = "first_instrument_id", ordinal = 0,type = PrimaryKeyType.PARTITIONED)
     private Long firstInstrumentId;
 
     @Column(value = "first_instrument_isin")
     private String firstInstrumentISIN;
 
-    @Column(value = "first_instrument_settl_currency_id")
+    @PrimaryKeyColumn(name = "first_instrument_settl_currency_id", ordinal = 1,type = PrimaryKeyType.PARTITIONED)
     private Long firstInstrumentSettlCurrencyId;
 
     @Column(value = "first_instrument_settl_currency_short_name")
@@ -73,8 +47,7 @@ public class Quote implements Serializable {
     public Quote() {
     }
 
-    public Quote(Long id, Long firstInstrumentId, String firstInstrumentISIN, Long firstInstrumentSettlCurrencyId, String firstInstrumentSettlCurrencyShortName, String quoteSettlementType, String quoteOperationType, Long price4one, Long instrumentQuantity, Date quoteTimestamp) {
-        this.id = id;
+    public Quote(Long firstInstrumentId, String firstInstrumentISIN, Long firstInstrumentSettlCurrencyId, String firstInstrumentSettlCurrencyShortName, String quoteSettlementType, String quoteOperationType, Long price4one, Long instrumentQuantity, Date quoteTimestamp) {
         this.firstInstrumentId = firstInstrumentId;
         this.firstInstrumentISIN = firstInstrumentISIN;
         this.firstInstrumentSettlCurrencyId = firstInstrumentSettlCurrencyId;
@@ -84,14 +57,6 @@ public class Quote implements Serializable {
         this.price4one = price4one;
         this.instrumentQuantity = instrumentQuantity;
         this.quoteTimestamp = quoteTimestamp;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getFirstInstrumentId() {

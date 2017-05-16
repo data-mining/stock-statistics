@@ -30,7 +30,6 @@ public class KafkaRecordsConvertor {
         }
 
         Quote quote = new Quote(
-                new Long(1), //стоит вопрос с primary key
                 new Long(map.get("firstInstrumentId").toString()),
                 map.get("firstInstrumentISIN").toString(),
                 new Long(map.get("firstInstrumentSettlCurrencyId").toString()),
