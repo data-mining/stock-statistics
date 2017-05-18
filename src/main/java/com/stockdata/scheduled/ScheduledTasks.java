@@ -22,7 +22,6 @@ public class ScheduledTasks {
     public void tick() throws Exception {
         for (Task a: sheduledTasks) {
             if (a.isAppliable()) {
-                System.out.println("10second");
                 a.execute();
             }
         }

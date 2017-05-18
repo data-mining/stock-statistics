@@ -30,7 +30,7 @@ public class ClientTH {
     public void sendMessage(Collection<PriceStatistics> priceStatisticses) throws Exception {
         if (thEnable) {
             Request request = new Request(Request.HttpMethod.POST, thHost, thPort);
-            request.setUrl(request.getUrl() + "/api/stockStatistics");
+            request.setUrl(request.getUrl() + "/api/tradeStatistics/price");
             request.setUsername("admin");
             request.setPassword("Operations1!");
 

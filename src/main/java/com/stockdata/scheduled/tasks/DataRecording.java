@@ -1,8 +1,8 @@
 package com.stockdata.scheduled.tasks;
 
 import com.stockdata.integration.kafka.KafkaWorker;
-import com.stockdata.model.Quote;
-import com.stockdata.repository.QuoteRepository;
+import com.stockdata.model.Trade;
+import com.stockdata.repository.TradeRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeFieldType;
@@ -30,14 +30,14 @@ public class DataRecording implements Task {
     private KafkaWorker kafkaWorker;
 
     @Autowired
-    private QuoteRepository quoteRepository;
+    private TradeRepository tradeRepository;
 
     @Override
     public void execute() {
         if(kafkaEnable) {
-            Collection<Quote> collectionFromKafka = kafkaWorker.subscribe();
-            for (Quote q : collectionFromKafka) {
-                quoteRepository.save(q);
+            Collection<Trade> collectionFromKafka = kafkaWorker.subscribe();
+            for (Trade q : collectionFromKafka) {
+                tradeRepository.save(q);
             }
         }
     }
@@ -48,7 +48,6 @@ public class DataRecording implements Task {
         DateTime dateTime = new DateTime();
         DateTime cronTime = new DateTime(generator.next(dateTime.minusSeconds(1).toDate()));
         DateTimeComparator comparator = DateTimeComparator.getInstance(DateTimeFieldType.secondOfMinute());
-        System.out.println("1 second");
         return comparator.compare(dateTime, cronTime) == 0;
     }
 }

@@ -2,7 +2,7 @@ package com.stockdata.scheduled.tasks;
 
 import com.stockdata.integration.spark.SparkWorker;
 import com.stockdata.integration.th.ClientTH;
-import com.stockdata.repository.QuoteRepository;
+import com.stockdata.repository.TradeRepository;
 import com.stockdata.type.PriceStatistics;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
@@ -29,7 +29,7 @@ public class DataProcessing implements Task {
     private Boolean sparkEnable;
 
     @Autowired
-    private QuoteRepository quoteRepository;
+    private TradeRepository tradeRepository;
 
     @Autowired
     private SparkWorker sparkWorker;
@@ -40,6 +40,7 @@ public class DataProcessing implements Task {
     @Override
     public void execute() throws Exception {
         if (sparkEnable) {
+            sparkWorker.initializeStorage();
             Collection<PriceStatistics> result = sparkWorker.averagePriceCalculation(1);
             for (PriceStatistics pr : result) {
                 System.out.println(" InstrumentId :" + pr.getInstrumentId() + " CurrencyId :" + pr.getCurrencyId() + " Price :" + pr.getPrice());
@@ -55,7 +56,6 @@ public class DataProcessing implements Task {
         DateTime dateTime = new DateTime();
         DateTime cronTime = new DateTime(generator.next(dateTime.minusSeconds(1).toDate()));
         DateTimeComparator comparator = DateTimeComparator.getInstance(DateTimeFieldType.secondOfMinute());
-        System.out.println("1 second");
         return comparator.compare(dateTime, cronTime) == 0;
     }
 }

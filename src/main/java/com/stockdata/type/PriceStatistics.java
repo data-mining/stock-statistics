@@ -13,7 +13,7 @@ public class PriceStatistics implements Serializable {
 
     private Long currencyId;
 
-    private Long price;
+    private Double price;
 
     private Long timestamp;
 
@@ -22,7 +22,7 @@ public class PriceStatistics implements Serializable {
     public PriceStatistics() {
     }
 
-    public PriceStatistics(Long instrumentId, Long currencyId, Long price, Long timestamp, Integer amountHours) {
+    public PriceStatistics(Long instrumentId, Long currencyId, Double price, Long timestamp, Integer amountHours) {
         this.instrumentId = instrumentId;
         this.currencyId = currencyId;
         this.price = price;
@@ -46,11 +46,11 @@ public class PriceStatistics implements Serializable {
         this.currencyId = currencyId;
     }
 
-    public Long getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(Long price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 

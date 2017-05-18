@@ -2,8 +2,8 @@ package com.stockdata.integration.spark;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
-import com.stockdata.model.Quote;
-import com.stockdata.repository.QuoteRepository;
+import com.stockdata.model.Trade;
+import com.stockdata.repository.TradeRepository;
 import com.stockdata.type.PriceStatistics;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -15,14 +15,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import scala.Tuple2;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Properties;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
 
@@ -48,12 +45,12 @@ public class SparkWorker {
     private String cassandraKeyspace;
 
     @Autowired
-    private QuoteRepository quoteRepository;
+    private TradeRepository tradeRepository;
 
-    static Function2<Tuple2<Long, Long>, Tuple2<Long, Long>, Tuple2<Long, Long>> functionReduceForPrice = new Function2<Tuple2<Long, Long>, Tuple2<Long, Long>, Tuple2<Long, Long>>() {
+    static Function2<Tuple2<Double, Double>, Tuple2<Double, Double>, Tuple2<Double, Double>> functionReduceForPrice = new Function2<Tuple2<Double, Double>, Tuple2<Double, Double>, Tuple2<Double, Double>>() {
         @Override
-        public Tuple2<Long, Long> call(Tuple2<Long, Long> priceAndOne1, Tuple2<Long, Long> priceAndOne2) throws Exception {
-            return new Tuple2<Long, Long>(priceAndOne1._1() + priceAndOne2._1(), priceAndOne1._2() + priceAndOne2._2());
+        public Tuple2<Double, Double> call(Tuple2<Double, Double> priceAndOne1, Tuple2<Double, Double> priceAndOne2) throws Exception {
+            return new Tuple2<Double, Double>(priceAndOne1._1() + priceAndOne2._1(), priceAndOne1._2() + priceAndOne2._2());
         }
     };
 
@@ -81,31 +78,32 @@ public class SparkWorker {
 
     public Collection<PriceStatistics> averagePriceCalculation(int amountHour) {
 
-//
         SparkConf sparkConf = new SparkConf()
                 .setAppName(sparkAppName)
                 .set("spark.cassandra.connection.host", cassandraHost)
                 .setMaster(sparkMaster);
-//
 
         JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-        LocalDateTime dateTime = LocalDateTime.now().minusHours(amountHour);//устанвка времени, начиная с которого считываются записи
-        Instant dateTimeInstant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
+        LocalDateTime basicDateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        Instant basicDateTimeInstant = basicDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
-        CassandraJavaRDD<Quote> quoteRecords = CassandraJavaUtil.javaFunctions(sparkContext)
-                .cassandraTable(cassandraKeyspace, "quote", mapRowTo(Quote.class))
-                .where("quote_timestamp > ?", Date.from(dateTimeInstant));
+        LocalDateTime startDateTime = basicDateTime.minusHours(amountHour);//устанвка времени, начиная с которого считываются записи
+        Instant startDateTimeInstant = startDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
+        CassandraJavaRDD<Trade> quoteRecords = CassandraJavaUtil.javaFunctions(sparkContext)
+                .cassandraTable(cassandraKeyspace, "trade", mapRowTo(Trade.class))
+                .where("trade_timestamp >= ?", Date.from(startDateTimeInstant))
+//                .where("quote_timestamp < ?", Date.from(basicDateTimeInstant))
+                ;
 
-        JavaPairRDD<Tuple2<Long, Long>, Long> result = quoteRecords
-                .mapToPair(quote -> new Tuple2<Tuple2<Long, Long>, Tuple2<Long, Long>>
-                        (new Tuple2<Long, Long>(quote.getFirstInstrumentId(), quote.getFirstInstrumentSettlCurrencyId()), new Tuple2<Long, Long>(quote.getPrice4one(), new Long(1))))
+        JavaPairRDD<Tuple2<Long, Long>, Double> result = quoteRecords
+                .mapToPair(quote -> new Tuple2<Tuple2<Long, Long>, Tuple2<Double, Double>>
+                        (new Tuple2<Long, Long>(quote.getInstrumentId(), quote.getCurrencyId()), new Tuple2<Double, Double>(quote.getPrice4one(), new Double(1))))
                 .reduceByKey(functionReduceForPrice)
-                .mapToPair(record -> new Tuple2<Tuple2<Long, Long>, Long>(record._1(), record._2()._1() / record._2()._2()));
+                .mapToPair(record -> new Tuple2<Tuple2<Long, Long>, Double>(record._1(), record._2()._1() / record._2()._2()));
 
-
-        JavaRDD<PriceStatistics> priceStatisticsRDD = result.map(record -> new PriceStatistics(record._1()._1(), record._1()._2(), record._2(), new Date().getTime(), amountHour));
+        JavaRDD<PriceStatistics> priceStatisticsRDD = result.map(record -> new PriceStatistics(record._1()._1(), record._1()._2(), record._2(), basicDateTimeInstant.toEpochMilli(), amountHour));
 
         Collection<PriceStatistics> priceStatisticsCollection = priceStatisticsRDD.collect();
 
@@ -114,9 +112,12 @@ public class SparkWorker {
     }
 
     public void initializeStorage() {
-        quoteRepository.save(new Quote(new Long(1), new Long(123), "ISIN", new Long(999), "USD", "Settl", "BUY", new Long(100), new Long(100), new Date()));
-        quoteRepository.save(new Quote(new Long(1), new Long(123), "ISIN", new Long(999), "USD", "Settl", "SELL", new Long(120), new Long(200), new Date()));
-        quoteRepository.save(new Quote(new Long(1), new Long(345), "ISIN", new Long(786), "DRM", "Settl", "BUY", new Long(133), new Long(120), new Date()));
+        tradeRepository.save(new Trade(new Long(2), new Long(1), new Long(100).doubleValue(), new Date()));
+        tradeRepository.save(new Trade(new Long(3),  new Long(1), new Long(12013).doubleValue(), new Date()));
+        tradeRepository.save(new Trade(new Long(2),  new Long(2), new Long(13398).doubleValue(),  new Date()));
+        tradeRepository.save(new Trade(new Long(123), new Long(999), new Long(100).doubleValue(),  new Date()));
+        tradeRepository.save(new Trade(new Long(123),  new Long(999), new Long(12013).doubleValue(),  new Date()));
+        tradeRepository.save(new Trade(new Long(345),  new Long(786), new Long(13398).doubleValue(), new Date()));
         ;
     }
 }

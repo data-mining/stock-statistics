@@ -1,14 +1,12 @@
 package com.stockdata.integration.kafka;
 
-import com.stockdata.model.Quote;
+import com.stockdata.model.Trade;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
@@ -61,7 +59,7 @@ public class KafkaWorker {
 //        }
     }
 
-    public Collection<Quote> subscribe() {
+    public Collection<Trade> subscribe() {
         ConsumerRecords<String, String> records = null;
         try {
             //
