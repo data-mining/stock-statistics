@@ -1,13 +1,14 @@
 package com.stockdata.scheduled.tasks;
 
 import com.stockdata.integration.kafka.KafkaWorker;
-import com.stockdata.model.Trade;
+import com.stockdata.model.TradeEntity;
 import com.stockdata.repository.TradeRepository;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 import org.joda.time.DateTimeFieldType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.cassandra.core.CassandraOperations;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Service;
 
@@ -30,15 +31,13 @@ public class DataRecording implements Task {
     private KafkaWorker kafkaWorker;
 
     @Autowired
-    private TradeRepository tradeRepository;
+    private CassandraOperations cassandraTemplate;
 
     @Override
     public void execute() {
         if(kafkaEnable) {
-            Collection<Trade> collectionFromKafka = kafkaWorker.subscribe();
-            for (Trade q : collectionFromKafka) {
-                tradeRepository.save(q);
-            }
+            Collection<TradeEntity> collectionFromKafka = kafkaWorker.subscribe();
+            cassandraTemplate.insert(collectionFromKafka);
         }
     }
 

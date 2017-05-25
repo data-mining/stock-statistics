@@ -2,7 +2,7 @@ package com.stockdata.integration.spark;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
-import com.stockdata.model.Trade;
+import com.stockdata.model.TradeEntity;
 import com.stockdata.repository.TradeRepository;
 import com.stockdata.type.PriceStatistics;
 import org.apache.spark.SparkConf;
@@ -12,14 +12,18 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.cassandra.core.CassandraOperations;
+import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.stereotype.Service;
 import scala.Tuple2;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
 
@@ -46,6 +50,9 @@ public class SparkWorker {
 
     @Autowired
     private TradeRepository tradeRepository;
+
+    @Autowired
+    private CassandraOperations cassandraTemplate;
 
     static Function2<Tuple2<Double, Double>, Tuple2<Double, Double>, Tuple2<Double, Double>> functionReduceForPrice = new Function2<Tuple2<Double, Double>, Tuple2<Double, Double>, Tuple2<Double, Double>>() {
         @Override
@@ -91,8 +98,8 @@ public class SparkWorker {
         LocalDateTime startDateTime = basicDateTime.minusHours(amountHour);//устанвка времени, начиная с которого считываются записи
         Instant startDateTimeInstant = startDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
-        CassandraJavaRDD<Trade> quoteRecords = CassandraJavaUtil.javaFunctions(sparkContext)
-                .cassandraTable(cassandraKeyspace, "trade", mapRowTo(Trade.class))
+        CassandraJavaRDD<TradeEntity> quoteRecords = CassandraJavaUtil.javaFunctions(sparkContext)
+                .cassandraTable(cassandraKeyspace, "trade", mapRowTo(TradeEntity.class))
                 .where("trade_timestamp >= ?", Date.from(startDateTimeInstant))
 //                .where("quote_timestamp < ?", Date.from(basicDateTimeInstant))
                 ;
@@ -112,12 +119,18 @@ public class SparkWorker {
     }
 
     public void initializeStorage() {
-        tradeRepository.save(new Trade(new Long(2), new Long(1), new Long(100).doubleValue(), new Date()));
-        tradeRepository.save(new Trade(new Long(3),  new Long(1), new Long(12013).doubleValue(), new Date()));
-        tradeRepository.save(new Trade(new Long(2),  new Long(2), new Long(13398).doubleValue(),  new Date()));
-        tradeRepository.save(new Trade(new Long(123), new Long(999), new Long(100).doubleValue(),  new Date()));
-        tradeRepository.save(new Trade(new Long(123),  new Long(999), new Long(12013).doubleValue(),  new Date()));
-        tradeRepository.save(new Trade(new Long(345),  new Long(786), new Long(13398).doubleValue(), new Date()));
+
+        List<TradeEntity> tradeEntityCollection = new ArrayList<>();
+        tradeEntityCollection.add(new TradeEntity(new Long(288), new Long(1), new Long(100).doubleValue(), new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(399),  new Long(1), new Long(12013).doubleValue(), new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(2), new Long(1), new Long(100).doubleValue(), new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(3),  new Long(1), new Long(12013).doubleValue(), new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(2),  new Long(2), new Long(13398).doubleValue(),  new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(123), new Long(999), new Long(100).doubleValue(),  new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(123),  new Long(999), new Long(12013).doubleValue(),  new Date()));
+        tradeEntityCollection.add(new TradeEntity(new Long(345),  new Long(786), new Long(13398).doubleValue(), new Date()));
+
+        cassandraTemplate.insert(tradeEntityCollection);
         ;
     }
 }

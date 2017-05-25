@@ -2,7 +2,7 @@ package com.stockdata.integration.kafka;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stockdata.model.Trade;
+import com.stockdata.model.TradeEntity;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.*;
 @Service
 public class KafkaRecordsConvertor {
 
-    public Trade kafkaRecordToModel(ConsumerRecord<String, String> consumerRecord){
+    public TradeEntity kafkaRecordToModel(ConsumerRecord<String, String> consumerRecord){
         ObjectMapper mapper = new ObjectMapper();
         String json = consumerRecord.value();
 
@@ -29,20 +29,20 @@ public class KafkaRecordsConvertor {
             e.printStackTrace();
         }
 
-        Trade trade = new Trade(
+        TradeEntity tradeEntity = new TradeEntity(
                 new Long(map.get("firstInstrumentId").toString()),
                 new Long(map.get("firstInstrumentSettlCurrencyId").toString()),
                 new Long(map.get("price4One").toString()).doubleValue(),
                 new Date());
-        return trade;
+        return tradeEntity;
     }
 
-    public Collection<Trade> kafkaRecordsToCollectionModel(ConsumerRecords<String, String> consumerRecords){
-        Collection<Trade> collectionTrade = new ArrayList<>();
+    public Collection<TradeEntity> kafkaRecordsToCollectionModel(ConsumerRecords<String, String> consumerRecords){
+        Collection<TradeEntity> collectionTradeEntity = new ArrayList<>();
         for (ConsumerRecord<String,String> c: consumerRecords) {
-            collectionTrade.add(kafkaRecordToModel(c));
+            collectionTradeEntity.add(kafkaRecordToModel(c));
         }
-        return collectionTrade;
+        return collectionTradeEntity;
     }
 
 }

@@ -12,8 +12,8 @@ import java.util.Date;
  * Created by mandarinka on 11.05.17.
  */
 
-@Table
-public class Trade implements Serializable {
+@Table("Trade")
+public class TradeEntity implements Serializable {
 
     @PrimaryKeyColumn(name = "instrument_id", ordinal = 0,type = PrimaryKeyType.PARTITIONED)
     private Long instrumentId;
@@ -27,10 +27,10 @@ public class Trade implements Serializable {
     @PrimaryKeyColumn(name = "trade_timestamp", type = PrimaryKeyType.CLUSTERED)
     private Date tradeTimestamp;
 
-    public Trade() {
+    public TradeEntity() {
     }
 
-    public Trade(Long instrumentId, Long currencyId, Double price4one, Date tradeTimestamp) {
+    public TradeEntity(Long instrumentId, Long currencyId, Double price4one, Date tradeTimestamp) {
         this.instrumentId = instrumentId;
         this.currencyId = currencyId;
         this.price4one = price4one;

@@ -29,9 +29,6 @@ public class DataProcessing implements Task {
     private Boolean sparkEnable;
 
     @Autowired
-    private TradeRepository tradeRepository;
-
-    @Autowired
     private SparkWorker sparkWorker;
 
     @Autowired
@@ -48,7 +45,6 @@ public class DataProcessing implements Task {
             clientTH.sendMessage(result);
         }
     }
-
 
     @Override
     public boolean isAppliable() {
