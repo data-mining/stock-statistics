@@ -37,7 +37,9 @@ public class DataRecording implements Task {
     public void execute() {
         if(kafkaEnable) {
             Collection<TradeEntity> collectionFromKafka = kafkaWorker.subscribe();
-            cassandraTemplate.insert(collectionFromKafka);
+            if(collectionFromKafka!=null && collectionFromKafka.size()!=0) {
+                cassandraTemplate.insert(collectionFromKafka);
+            }
         }
     }
 

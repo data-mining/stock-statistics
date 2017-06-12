@@ -37,7 +37,7 @@ public class DataProcessing implements Task {
     @Override
     public void execute() throws Exception {
         if (sparkEnable) {
-            sparkWorker.initializeStorage();
+            //sparkWorker.initializeStorage();
             Collection<PriceStatistics> result = sparkWorker.averagePriceCalculation(1);
             for (PriceStatistics pr : result) {
                 System.out.println(" InstrumentId :" + pr.getInstrumentId() + " CurrencyId :" + pr.getCurrencyId() + " Price :" + pr.getPrice());
